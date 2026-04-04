@@ -1,28 +1,30 @@
 # softvoyagers/claude-skills
 
-Multi-agent workflow skills and commands for Claude Code. Orchestrate specialized agents to fix bugs, implement features, discover customer needs, and research issues — all end-to-end.
+Multi-agent workflow commands and skills for Claude Code. Orchestrate specialized agents to fix bugs, implement features, discover customer needs, and research issues — all end-to-end.
 
 ## Installation
-
-### Claude Code
 
 ```bash
 claude plugin marketplace add softvoyagers/claude-skills
 ```
 
-Then enable the plugin in Claude Code settings or via the setup script from [ai-agent-setup](https://github.com/dpozimski/ai-agent-setup).
+Then enable the plugin in Claude Code settings, or use the setup script from [ai-agent-setup](https://github.com/dpozimski/ai-agent-setup):
 
-## Available Commands
+```powershell
+.\claude.ps1 -Profile working-profile
+```
 
-| Command | Description |
-|---------|-------------|
-| `/softvoyagers-skills:bug-fix` | Diagnose and fix bugs using 4-phase multi-agent orchestration (diagnose, fix, validate, ship) |
-| `/softvoyagers-skills:new-feature` | Implement features end-to-end with 5-phase workflow (discovery, architecture, implement, review, ship) |
-| `/softvoyagers-skills:discover-feature` | Research-only customer needs analysis from 5 perspectives (virtual customer, UX designer, product owner, engineer, QA) |
-| `/softvoyagers-skills:discover-feature-and-deliver-most-wanted` | Discover customer needs then implement the highest-impact feature in a single session |
-| `/softvoyagers-skills:research-issue` | Research non-trivial issues with 4 parallel agents (codebase, web, docs, internal knowledge) |
+## Commands
 
-## Available Skills
+| Command | Phases | Description |
+|---------|--------|-------------|
+| `/softvoyagers-skills:bug-fix` | Diagnose → Fix → Validate → Ship | Multi-agent bug diagnosis and minimal fix with regression tests |
+| `/softvoyagers-skills:new-feature` | Discovery → Architecture → Implement → Review → Ship | End-to-end feature implementation with customer-focused requirements |
+| `/softvoyagers-skills:discover-feature` | Research → Synthesis → Report | Read-only customer needs analysis from 5 perspectives (Virtual Customer, UX Designer, Product Owner, Engineer, QA) |
+| `/softvoyagers-skills:discover-feature-and-deliver-most-wanted` | Research → Selection → Architecture → Implement → Review → Ship | Discover customer needs then build the highest-impact feature |
+| `/softvoyagers-skills:research-issue` | Input Parsing → Gather → Analyze → Report | Research non-trivial issues with 4 parallel agents (codebase, web, docs, internal knowledge) |
+
+## Skills
 
 | Skill | Description |
 |-------|-------------|
@@ -30,15 +32,27 @@ Then enable the plugin in Claude Code settings or via the setup script from [ai-
 
 ## How It Works
 
-Each command follows the **Orchestrator pattern**: Claude coordinates multiple specialized agents across phases, each with focused responsibilities. Agents run in parallel where possible, with quality gates between phases.
+Each command uses the **Orchestrator pattern**:
 
-### Common Conventions
+1. Claude acts as the orchestrator and never writes code directly
+2. Specialized agents are launched in parallel where possible (Explore for read-only research, general-purpose for code changes)
+3. Quality gates between phases ensure correctness before proceeding
+4. Final phase creates a branch, commits, pushes, and opens a PR
+
+### Conventions
 
 All commands enforce:
 - Test naming: `MethodName_Scenario_ExpectedResult`
 - Test structure: Arrange / Act / Assert
-- Minimal change surface
-- Existing codebase patterns and conventions
+- Minimal change surface — only touch what's necessary
+- Follow existing codebase patterns and conventions
+- Tech-stack agnostic — auto-detects project tooling
+
+## Autonomous Variants
+
+The [ai-agent-setup](https://github.com/dpozimski/ai-agent-setup) repository includes autonomous-profile command overrides that extend these marketplace commands with:
+- Autonomous decision gates (proceed without asking the user)
+- Slack status reporting to a designated channel
 
 ## License
 
