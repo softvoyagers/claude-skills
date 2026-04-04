@@ -26,7 +26,7 @@ Then enable the plugin in Claude Code settings or via the setup script from [ai-
 
 | Skill | Description |
 |-------|-------------|
-| `gamma-hello-world` | Create a minimal working Gamma presentation API example |
+| `use-gamma-slides` | Generate slide presentations using the Gamma API — prompt-driven creation, style customization, and structured content |
 
 ## How It Works
 
