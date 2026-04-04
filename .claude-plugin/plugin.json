@@ -1,0 +1,20 @@
+{
+  "name": "softvoyagers-skills",
+  "description": "Multi-agent workflow skills: bug fixing, feature implementation, feature discovery, and issue research",
+  "version": "1.0.0",
+  "author": {
+    "name": "SoftVoyagers",
+    "email": "damian.pozimski@gmail.com"
+  },
+  "homepage": "https://github.com/softvoyagers/claude-skills",
+  "repository": "https://github.com/softvoyagers/claude-skills",
+  "license": "MIT",
+  "keywords": [
+    "multi-agent",
+    "bug-fix",
+    "feature-discovery",
+    "feature-implementation",
+    "issue-research",
+    "orchestration"
+  ]
+}
