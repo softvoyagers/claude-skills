@@ -8,11 +8,7 @@ Multi-agent workflow commands and skills for Claude Code. Orchestrate specialize
 claude plugin marketplace add softvoyagers/claude-skills
 ```
 
-Then enable the plugin in Claude Code settings, or use the setup script from [ai-agent-setup](https://github.com/dpozimski/ai-agent-setup):
-
-```powershell
-.\claude.ps1 -Profile working-profile
-```
+Then enable the plugin in Claude Code settings.
 
 ## Commands
 
@@ -47,12 +43,6 @@ All commands enforce:
 - Minimal change surface — only touch what's necessary
 - Follow existing codebase patterns and conventions
 - Tech-stack agnostic — auto-detects project tooling
-
-## Autonomous Variants
-
-The [ai-agent-setup](https://github.com/dpozimski/ai-agent-setup) repository includes autonomous-profile command overrides that extend these marketplace commands with:
-- Autonomous decision gates (proceed without asking the user)
-- Slack status reporting to a designated channel
 
 ## License
 
