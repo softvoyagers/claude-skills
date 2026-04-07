@@ -1,3 +1,7 @@
+---
+description: Read-only customer needs analysis from multiple perspectives
+---
+
 # /discover-feature — Multi-Agent Feature Discovery
 
 Discover what customers actually need by analyzing the product from multiple perspectives. Input: a product area, user segment, or pain point to investigate. Output: a prioritized list of feature recommendations grounded in real customer needs.

@@ -1,3 +1,7 @@
+---
+description: End-to-end feature implementation with specialized agents
+---
+
 # /new-feature — Multi-Agent Feature Implementation
 
 Implement a new feature end-to-end using specialized agents. Input: a feature description. Output: a PR with tested, reviewed code ready for human merge.

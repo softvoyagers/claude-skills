@@ -1,3 +1,7 @@
+---
+description: Discover customer needs then build the highest-impact feature
+---
+
 # /discover-feature-and-deliver-most-wanted — Discover & Deliver
 
 Discover what customers need, then implement the highest-impact feature. Input: a product area, user segment, or pain point. Output: a PR with the most wanted feature, grounded in customer research.
