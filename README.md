@@ -6,9 +6,8 @@ Multi-agent workflow commands and skills for Claude Code. Orchestrate specialize
 
 ```bash
 claude plugin marketplace add softvoyagers/claude-skills
+claude plugin install softvoyagers-skills
 ```
-
-Then enable the plugin in Claude Code settings.
 
 ## Commands
 
