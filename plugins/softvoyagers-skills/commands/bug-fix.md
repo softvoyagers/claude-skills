@@ -1,3 +1,7 @@
+---
+description: Multi-agent bug diagnosis and minimal fix with regression tests
+---
+
 # /bug-fix — Multi-Agent Bug Fix
 
 Diagnose and fix a bug end-to-end using specialized agents. Input: a bug report or error description. Output: a PR with a minimal, tested fix ready for human merge.

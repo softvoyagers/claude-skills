@@ -1,3 +1,7 @@
+---
+description: Research non-trivial issues with parallel specialized agents
+---
+
 # /research-issue — Multi-Agent Issue Research
 
 Research a non-trivial issue using specialized agents. Input: a JIRA ticket ID or issue description. Output: a structured research report with root cause hypotheses, evidence, and recommended fixes.

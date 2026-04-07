@@ -1,7 +1,7 @@
 {
   "name": "softvoyagers-skills",
   "description": "Multi-agent workflow skills: bug fixing, feature implementation, feature discovery, and issue research",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "SoftVoyagers",
     "email": "damian.pozimski@gmail.com"
