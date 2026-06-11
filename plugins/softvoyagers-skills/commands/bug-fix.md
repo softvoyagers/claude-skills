@@ -4,7 +4,7 @@ description: Multi-agent bug diagnosis and minimal fix with regression tests
 
 # /bug-fix — Multi-Agent Bug Fix
 
-Diagnose and fix a bug end-to-end using specialized agents. Input: a bug report or error description. Output: a PR with a minimal, tested fix ready for human merge.
+Diagnose and fix a bug end-to-end using dedicated agents. Input: a bug report or error description. Output: a PR with a minimal, tested fix ready for human merge.
 
 **Bug report**: $ARGUMENTS
 
@@ -12,91 +12,86 @@ Diagnose and fix a bug end-to-end using specialized agents. Input: a bug report 
 
 ## Execution Protocol
 
-You are the **Orchestrator**. You coordinate specialized agents across 4 phases. You never write fix code yourself — you delegate, synthesize, and gate quality. The fix must be **minimal** — change the fewest lines possible to resolve the root cause. No refactoring, no scope creep.
+You are the **Orchestrator**. You coordinate dedicated subagents and gate quality — you never write fix code yourself. The fix must be **minimal**: change the fewest lines needed to resolve the root cause. No refactoring, no scope creep.
 
-### Conventions (enforce in all agent prompts)
+You delegate by calling the Task tool with the agent's `subagent_type`. The agents are provided by this plugin and carry their own model — you do not set models:
 
-- Test naming: `MethodName_Scenario_ExpectedResult`
-- Test structure: Arrange / Act / Assert
-- No comments in code
-- Minimal change surface — fix the bug, nothing else
-- No refactoring — even if surrounding code is ugly
-- Use the test framework already established in the project
+| Role | `subagent_type` | Model |
+| ---- | --------------- | ----- |
+| Bug diagnosis (root cause, blast radius, git history, sibling bugs) | `softvoyagers-skills:sv-root-cause-analyst` | opus |
+| Tests (reproduction + regression) | `softvoyagers-skills:sv-test-engineer` | opus |
+| Fix author (sole code writer) | `softvoyagers-skills:sv-implementer` | opus |
+| Senior review | `softvoyagers-skills:sv-code-reviewer` | opus |
+| Adversarial / coverage review | `softvoyagers-skills:sv-adversarial-tester` | opus |
+| User verification | `softvoyagers-skills:sv-virtual-customer` | fable |
+
+### Conventions (enforce in every delegation)
+
+- Test naming `MethodName_Scenario_ExpectedResult`; Arrange / Act / Assert structure.
+- No comments in code. Use the test framework already established in the project.
+- Minimal change surface — fix the bug, nothing else. No refactoring even if surrounding code is ugly.
 
 ---
 
 ## Phase 1: DIAGNOSE
 
-**Goal**: Find the root cause, write a failing reproduction test, check for sibling bugs.
-
-Launch **3 agents in parallel**:
-
-### Agent 1 — Root Cause Analyst (Explore)
-
-Trace the code path that triggers the bug. Use Grep, Read, git log, and git blame to identify the exact root cause (file, line, what's wrong). Map symptoms to code path to root cause to blast radius. Return: SYMPTOMS, CODE PATH, ROOT CAUSE (file:line + explanation), RECENT CHANGES, BLAST RADIUS.
-
-### Agent 2 — Reproduction Test Writer (general-purpose)
-
-Write a test that REPRODUCES the bug — it should FAIL with current code. Read existing tests first to match conventions. Run the test to confirm failure. Return: TEST FILE, TEST NAME, FAILURE OUTPUT, EXPECTED BEHAVIOR.
-
-### Agent 3 — Sibling Bug Hunter (Explore)
-
-Once you understand the bug pattern, search the entire codebase for the same defect pattern in other locations. Return: BUG PATTERN, SIBLING LOCATIONS (file:line list), SEVERITY per location, RECOMMENDATION (same PR or separate).
-
-**Gate**: Synthesize diagnosis. If reproduction test failed or diagnosis is unclear, ask the user for more context.
-
----
-
-## Phase 2: FIX
-
-**Goal**: Apply a minimal fix and write regression tests.
+**Goal**: Find the root cause and lock in a failing reproduction test.
 
 Launch **2 agents in parallel**:
 
-### Agent 1 — Fixer (general-purpose)
+1. **`sv-root-cause-analyst`** — trace symptom → code path → root cause (`file:line` + why), assess blast radius, mine `git log`/`git blame` for the regressing change and any prior reverts, and **sequentially** hunt the same defect pattern elsewhere. Returns the full diagnosis.
+2. **`sv-test-engineer`** — write a test that **reproduces** the bug and **fails** against current code; run it; confirm it is red. Returns the test file path, test name, and failure output.
 
-Apply a minimal fix for the root cause. Provide the full Phase 1 diagnosis. Rules: fix ROOT CAUSE not symptoms, change FEWEST LINES possible, no refactoring, no improvements. Fix sibling locations only if flagged for same-PR. List every file:line changed with justification.
+**Freeze the contract.** Record the reproduction test's file path + test name. This test is **frozen** — no agent may modify, skip, or weaken it for the rest of the run.
 
-### Agent 2 — Test Writer (general-purpose)
-
-Write regression tests for the fix. Verify the Phase 1 reproduction test, write boundary tests around the fix. Run the full test suite — all tests should pass. Report: test count, test names, runner results.
-
-**Gate**: Run the full test suite yourself to verify.
+**Gate**: If the reproduction test does not fail, or the diagnosis is unclear/multi-rooted with no leading hypothesis, ask the user for more context before looping.
 
 ---
 
-## Phase 3: VALIDATE
+## Phase 2–3: FIX ↔ VALIDATE LOOP
 
-**Goal**: Two review rounds to verify correctness and minimality.
+A single orchestrator-owned loop. **You own a monotonic iteration counter; no agent may extend it. Hard cap: 3 iterations.**
 
-### Review Round (repeat up to 2 times)
+### Each iteration
 
-Launch **3 agents in parallel**:
+1. **Correct.** Route the work:
+   - code CRITICALs → **`sv-implementer`** (the sole code writer): apply/refine the minimal fix.
+   - coverage / reproduction CRITICALs → **`sv-test-engineer`** (ADD-only): add regression/boundary tests. It may not weaken the frozen reproduction test or any previously passing test.
+   - On iteration 1, the implementer fixes the root cause from the Phase 1 diagnosis; the test engineer adds boundary tests around the fix.
+2. **Run the full suite yourself** and capture the exit code. Diff the test files vs. the previous iteration and **reject any assertion/test removal** — if a passing test or the frozen reproduction test was weakened, send it back.
+3. **Review panel — launch 3 agents in parallel:** `sv-code-reviewer`, `sv-adversarial-tester`, `sv-virtual-customer` (VERIFICATION mode). Each ends with `VERDICT: BLOCK|CLEAR` and a fingerprinted `CRITICAL: [...]` list. `SUGGESTION:` lines never block.
 
-#### Agent 1 — Senior Reviewer (general-purpose)
+### Convergence gate (you evaluate)
 
-Review ALL changes via `git diff`. Check: CORRECTNESS (root cause addressed?), MINIMALITY (unnecessary changes?), REGRESSION RISK, TEST QUALITY. Flag issues as CRITICAL or SUGGESTION. A bug fix PR should have a tiny diff.
+**CONVERGE** when **all three** hold:
+- every review agent returned `VERDICT: CLEAR` (the union of CRITICAL sets is empty), **and**
+- the full test suite exits 0, **and**
+- the **frozen** reproduction test passes.
 
-#### Agent 2 — User Verification (Explore)
+On convergence → Phase 4.
 
-Trace the code path from bug trigger through fix. Verify the exact scenario from the bug report is resolved. Check for uncovered edge cases. Return: FIXED yes/no with explanation.
+### No-progress guard (prevents thrashing / burns)
 
-#### Agent 3 — Adversarial Tester (Explore)
+After each iteration, fingerprint the CRITICAL set (`file:line | category`). If it does **not strictly shrink** versus the previous iteration — count not reduced, or a previously-seen CRITICAL reappears — **stop early** and ship-with-residuals (do not spend the remaining budget). A reappearing fingerprint means freeze that change and escalate it to the PR body.
 
-Try to break the fix: slightly different inputs, null/empty/boundary values, regression in related functionality, partial fixes. Return: attack scenarios and results.
+### Correction payload (pass to the corrector each iteration)
 
-**After reviews**: Collate CRITICAL issues, run test suite. If zero critical issues AND tests pass, proceed to Phase 4. Otherwise launch a fix agent, then re-review. After 2 rounds, proceed with remaining issues noted.
+Full Phase-1 diagnosis · current `git diff` · verbatim failing-test output · each CRITICAL with `file:line` and a suggested direction · the instruction: *"Address ONLY these CRITICALs. Do not refactor. Keep the change minimal. If two CRITICALs conflict, surface the conflict instead of thrashing."*
+
+After 3 iterations without convergence → proceed to Phase 4 ship-with-residuals (issues noted in the PR), **unless** the ship-floor below triggers.
 
 ---
 
 ## Phase 4: SHIP
 
-**Goal**: Create a branch, commit, push, and open a PR.
+Execute yourself — do NOT delegate.
 
-Execute yourself — do NOT delegate:
+**Ship-floor (overrides the cap):** if the **frozen reproduction test still FAILS** at the cap, do **NOT** open a PR. Push a branch labeled `UNRESOLVED`, write the diagnosis + best partial fix into its description, and hand back to the user. The bug is not fixed; do not pretend otherwise.
+
+Otherwise:
 
 1. `git checkout -b fix/<descriptive-name>`
-2. `git add <specific files>` — never use `git add .`
+2. `git add <specific files>` — never `git add .`
 3. Commit:
    ```
    git commit -m "$(cat <<'EOF'
@@ -107,7 +102,7 @@ Execute yourself — do NOT delegate:
    - <fix summary>
    - <tests added>
 
-   Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+   Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
    EOF
    )"
    ```
@@ -127,24 +122,27 @@ Execute yourself — do NOT delegate:
    ## Sibling Bugs
    <list or "None found">
 
+   ## Residual Issues
+   <SUGGESTION items + any CRITICAL frozen by the no-progress guard, or "None">
+
    ## Test Plan
-   - [ ] Reproduction test confirms fix
+   - [ ] Frozen reproduction test now passes
    - [ ] Regression tests pass
-   - [ ] Code reviewed through 2 automated rounds
+   - [ ] Converged through the FIX↔VALIDATE loop (≤3 iterations)
    - [ ] Minimal change surface
 
    🤖 Generated with multi-agent bug fix
    EOF
    )"
    ```
-6. Output the PR URL and summary.
+6. Output the PR URL and a summary.
 
 ---
 
 ## Error Handling
 
 - Agent failure: retry once, then proceed without and note the gap.
-- Tests fail after fix: fix agent in Phase 3 addresses this. If still failing after 2 rounds, list in PR.
-- Ambiguous bug report: ask user before proceeding past Phase 1.
-- Cross-repo root cause: fix what's in THIS repo, note cross-repo issues in PR.
-- Sibling bugs: include in same PR only if fix is identical and low-risk, otherwise note in PR.
+- Tests still failing at the cap: ship-floor applies (UNRESOLVED branch, no PR).
+- Ambiguous bug report: ask the user before looping.
+- Cross-repo root cause: fix what's in THIS repo; note cross-repo issues in the PR.
+- Sibling bugs: include in the same PR only if the fix is identical and low-risk; otherwise note them in the PR.
