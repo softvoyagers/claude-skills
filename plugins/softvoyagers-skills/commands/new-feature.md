@@ -4,7 +4,7 @@ description: End-to-end feature implementation with specialized agents
 
 # /new-feature — Multi-Agent Feature Implementation
 
-Implement a new feature end-to-end using specialized agents. Input: a feature description. Output: a PR with tested, reviewed code ready for human merge.
+Implement a new feature end-to-end using dedicated agents. Input: a feature description (or a `SELECTED FEATURE` block from the discover-and-deliver wrapper). Output: a PR with tested, reviewed code ready for human merge.
 
 **Feature request**: $ARGUMENTS
 
@@ -12,126 +12,94 @@ Implement a new feature end-to-end using specialized agents. Input: a feature de
 
 ## Execution Protocol
 
-You are the **Orchestrator**. You coordinate specialized agents across 5 phases. You never write feature code yourself — you delegate, synthesize, and gate quality.
+You are the **Orchestrator**. You coordinate dedicated subagents and gate quality — you never write feature code yourself. You delegate via the Task tool's `subagent_type`; each agent carries its own model:
 
-### Conventions (enforce in all agent prompts)
+| Role | `subagent_type` | Model |
+| ---- | --------------- | ----- |
+| Codebase map | `softvoyagers-skills:sv-codebase-analyst` | sonnet |
+| User advocate / acceptance criteria | `softvoyagers-skills:sv-virtual-customer` | fable |
+| UX & quality risk | `softvoyagers-skills:sv-qa-analyst` | fable |
+| Architecture plan | `softvoyagers-skills:sv-tech-lead` | opus |
+| Implementation (sole code writer) | `softvoyagers-skills:sv-implementer` | opus |
+| Tests | `softvoyagers-skills:sv-test-engineer` | opus |
+| Senior review | `softvoyagers-skills:sv-code-reviewer` | opus |
+| Adversarial / coverage review | `softvoyagers-skills:sv-adversarial-tester` | opus |
+| Acceptance gate | `softvoyagers-skills:sv-acceptance-validator` | opus |
 
-- Test naming: `MethodName_Scenario_ExpectedResult`
-- Test structure: Arrange / Act / Assert
-- No comments in code
-- Minimal change surface — only touch what's necessary
-- Use the test framework already established in the project
-- Follow existing codebase patterns and conventions
+### Conventions (enforce in every delegation)
+
+- Test naming `MethodName_Scenario_ExpectedResult`; Arrange / Act / Assert.
+- No comments in code. Minimal change surface. Use the project's established test framework and patterns.
 
 ---
 
 ## Phase 1: DISCOVERY
 
-**Goal**: Understand the codebase, define user-focused requirements, identify risks.
+**Goal**: Understand the codebase, define user-grounded acceptance criteria, surface risk.
 
-Launch **3 agents in parallel**:
+**Pre-supplied requirements short-circuit (when called from the wrapper):** If `$ARGUMENTS` contains an authoritative `SELECTED FEATURE` block (name + customer problem + scope IN/OUT + acceptance criteria), treat those acceptance criteria as **canonical** — do **NOT** regenerate them and do **NOT** re-run discovery. Reduce Phase 1 to **`sv-codebase-analyst`** + **`sv-qa-analyst`** only (the technical grounding discovery did not produce), then go to Phase 2.
 
-### Agent 1 — Codebase Analyst (Explore)
+Otherwise, launch **3 agents in parallel**:
+1. **`sv-codebase-analyst`** — codebase map, similar patterns to follow, affected files, dependencies, constraints.
+2. **`sv-virtual-customer`** (DISCOVERY mode) — the user problem, the before/after workflow, the minimum viable scope, and **3–7 testable acceptance criteria** grounded in real user actions and outcomes (not abstract Given/When/Then), plus the done-definition.
+3. **`sv-qa-analyst`** (RISK mode) — workflow breaks, confusion risks, edge cases, regression risks, data-integrity hazards.
 
-Map the codebase structure relevant to this feature. Find similar existing features or patterns to follow. Identify files that need changes, integration points, dependencies, and technical constraints. Return: CODEBASE MAP, SIMILAR PATTERNS (with file paths), AFFECTED FILES, DEPENDENCIES, CONSTRAINTS.
-
-### Agent 2 — User Advocate (Explore)
-
-Think as a real end-user of this feature. Explore the codebase to understand the current user experience, then define:
-1. **User problem**: What pain point does this solve? What's the user doing today without it?
-2. **User workflow**: Step-by-step how a real user interacts with this feature (before/after)
-3. **Minimum viable scope**: Simplest version that delivers value. What can be deferred?
-4. **Acceptance criteria**: 3-7 testable requirements grounded in real user scenarios — describe actual user actions and outcomes, not abstract Given/When/Then
-5. **Done definition**: What must be true for a real user to benefit?
-
-### Agent 3 — UX Risk Assessor (Explore)
-
-Think as a real user who might be confused or frustrated. Identify:
-1. **Workflow breaks**: Could this break existing user workflows? Which ones?
-2. **Confusion risks**: Inconsistent behavior, surprising defaults, unclear errors?
-3. **Edge cases**: Empty states, first-time use, concurrent usage, slow connections
-4. **Regression risks**: Which existing features could behave differently?
-5. **Data integrity**: Could this corrupt, lose, or expose user data?
-
-**Gate**: Synthesize into a requirements document. Ensure acceptance criteria reflect real user scenarios.
+**Gate**: Synthesize into a requirements document. Mark each acceptance criterion **must-have** or nice-to-have. Ensure the criteria reflect real user scenarios.
 
 ---
 
 ## Phase 2: ARCHITECTURE
 
-**Goal**: Detailed implementation plan before any code is written.
+**Goal**: A detailed plan before any code is written.
 
-Launch **1 agent** (needs Phase 1 output):
+Launch **`sv-tech-lead`** (ARCHITECTURE mode): file-by-file change plan, test strategy derived from the acceptance criteria, API contracts, implementation order, risk mitigation. It reads code to match patterns and does not write code.
 
-### Agent — Tech Lead (general-purpose)
-
-Design the architecture based on discovery findings:
-1. **File-by-file change plan**: path, changes, design decisions, dependencies
-2. **Test strategy**: unit, integration, and edge case tests from user requirements
-3. **API contracts**: exact signatures for new interfaces
-4. **Implementation order**: dependency graph
-5. **Risk mitigation**: how identified risks are addressed
-
-Do NOT write code. Read existing code to match patterns. Reference exact file paths, function names, and line ranges.
-
-**Gate**: Verify plan addresses all acceptance criteria. Revise if gaps exist.
+**Gate**: Verify the plan addresses every acceptance criterion. Revise if gaps exist.
 
 ---
 
-## Phase 3: IMPLEMENT
+## Phase 3–4: IMPLEMENT ↔ REVIEW LOOP
 
-**Goal**: Write the feature code and tests in parallel.
+A single orchestrator-owned loop. **You own a monotonic iteration counter. Hard cap: 3 iterations.**
 
-Launch **3 agents in parallel**:
+### Each iteration
 
-### Agent 1 — Core Implementer (general-purpose)
+1. **Produce/refine** — `sv-implementer` writes the feature following the plan (sole code writer, minimal surface, no comments); `sv-test-engineer` adds tests per the test strategy (ADD-only; never weakens passing tests).
+2. **Run the full suite yourself** and capture the exit code.
+3. **Review panel — launch 3 agents in parallel:**
+   - `sv-code-reviewer` → `VERDICT: BLOCK|CLEAR` + fingerprinted `CRITICAL: [...]`
+   - `sv-adversarial-tester` (also owns the **coverage-gap** check — the test engineer does not grade its own coverage) → `VERDICT` + `CRITICAL`
+   - `sv-acceptance-validator` → `CRITERIA: [<id>: PASS|FAIL: <why>]`, one entry per criterion.
 
-Implement the feature following the architecture plan. Follow existing patterns, no comments, minimal surface. List every file created or modified.
+### Convergence gate (you evaluate)
 
-### Agent 2 — Test Writer (general-purpose)
+**CONVERGE** when **all** hold:
+- every reviewer returned `VERDICT: CLEAR`, **and**
+- the full test suite exits 0, **and**
+- every **must-have** acceptance criterion is `PASS`.
 
-Write unit and integration tests per the test strategy and acceptance criteria. Cover happy path, edge cases, error scenarios, boundary conditions. Run the full test suite and report results.
+On convergence → Phase 5.
 
-### Agent 3 — Edge Case Tester (general-purpose)
+### No-progress guard
 
-Write additional tests focused on UX risks from Phase 1: workflow breaks, confusion scenarios, regression tests for existing behavior. Run tests after writing.
+After each iteration: if the fingerprinted CRITICAL set does **not strictly shrink**, **OR** no `FAIL` criterion moved toward `PASS`, **OR** any previously-seen CRITICAL/FAIL fingerprint reappears, **stop early** and ship-with-residuals rather than burning budget.
 
-**Gate**: Run the full test suite yourself to verify everything compiles and passes.
+### Correction payload (pass to producers each iteration)
 
----
+Phase-2 architecture plan · current `git diff` · verbatim failing-test/criterion output · each CRITICAL/FAIL with `file:line` and a direction · *"Address only these; do not alter passing behavior; keep the change minimal."* Route code CRITICALs → `sv-implementer`; coverage/test CRITICALs → `sv-test-engineer`.
 
-## Phase 4: REVIEW & ITERATE
-
-**Goal**: Two review rounds to catch issues before shipping.
-
-### Review Round (repeat up to 2 times)
-
-Launch **3 agents in parallel**:
-
-#### Agent 1 — Senior Reviewer (general-purpose)
-
-Review ALL changes via `git diff`. Check: CORRECTNESS, PATTERNS (codebase conventions), TESTS (coverage, meaningful assertions), MINIMAL SURFACE, NAMING. Flag issues as CRITICAL or SUGGESTION.
-
-#### Agent 2 — Test Coverage Reviewer (Explore)
-
-Review test coverage: untested code paths, edge cases, error scenarios. Verify test naming and structure conventions. Check tests are meaningful, not padding.
-
-#### Agent 3 — Acceptance Validator (Explore)
-
-Check each acceptance criterion from Phase 1 — PASS/FAIL with explanation. Verify edge cases handled and done definition met.
-
-**After reviews**: Collate CRITICAL issues, run test suite. If zero critical AND tests pass, proceed to Phase 5. Otherwise launch fix agents, then re-review. After 2 rounds, proceed with issues noted in PR.
+After 3 iterations without convergence → Phase 5 ship-with-residuals, subject to the ship-floor.
 
 ---
 
 ## Phase 5: SHIP
 
-**Goal**: Branch, commit, push, PR.
+Execute yourself — do NOT delegate.
 
-Execute yourself — do NOT delegate:
+**Ship-floor (overrides the cap):** if any **must-have** acceptance criterion is still `FAIL` at the cap, open the PR as a **DRAFT** with a prominent `NOT READY — failing: <criteria>` header. Do not silently ship it as ready.
 
 1. `git checkout -b feature/<descriptive-name>`
-2. `git add <specific files>` — never use `git add .`
+2. `git add <specific files>` — never `git add .`
 3. Commit:
    ```
    git commit -m "$(cat <<'EOF'
@@ -139,30 +107,32 @@ Execute yourself — do NOT delegate:
 
    - <key change 1>
    - <key change 2>
-   - <key change 3>
 
-   Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+   Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
    EOF
    )"
    ```
 4. `git push -u origin feature/<branch-name>`
-5. Create PR:
+5. Create PR (`gh pr create --draft` if the ship-floor triggered):
    ```
    gh pr create --title "feat: <description>" --body "$(cat <<'EOF'
    ## Summary
    <2-3 sentences>
 
    ## Changes
-   - <file-level summary>
+   <file-level summary>
 
    ## Acceptance Criteria
-   <criteria from Phase 1 with PASS/FAIL>
+   <each criterion with PASS/FAIL from sv-acceptance-validator>
+
+   ## Residual Issues
+   <SUGGESTION items + anything frozen by the no-progress guard, or "None">
 
    ## Test Plan
    - [ ] All tests pass
-   - [ ] Edge cases and error scenarios tested
-   - [ ] Acceptance criteria validated
-   - [ ] Code reviewed through 2 automated rounds
+   - [ ] Coverage gaps checked by adversarial review
+   - [ ] Acceptance criteria validated (every must-have PASS)
+   - [ ] Converged through the IMPLEMENT↔REVIEW loop (≤3 iterations)
 
    🤖 Generated with multi-agent feature implementation
    EOF
@@ -175,6 +145,6 @@ Execute yourself — do NOT delegate:
 ## Error Handling
 
 - Agent failure: retry once, then proceed without and note the gap.
-- Tests fail: fix agents in Phase 4 address this. If still failing after 2 rounds, list in PR.
-- Ambiguous feature request: ask user for clarification before Phase 1.
-- No obvious location for feature: Tech Lead decides in architecture phase with rationale.
+- Tests/criteria failing at the cap: ship-floor applies (DRAFT PR, NOT READY header).
+- Ambiguous feature request: ask the user for clarification before Phase 1.
+- No obvious location for the feature: `sv-tech-lead` decides in the architecture phase with rationale.

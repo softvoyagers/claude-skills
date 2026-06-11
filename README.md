@@ -1,6 +1,6 @@
 # softvoyagers/claude-skills
 
-Multi-agent workflow commands and skills for Claude Code. Orchestrate specialized agents to fix bugs, implement features, discover customer needs, and research issues — all end-to-end.
+Multi-agent workflow commands and skills for Claude Code. Orchestrate **dedicated, model-tiered agents** to fix bugs, implement features, and discover customer needs — end-to-end, with self-correcting loops.
 
 ## Installation
 
@@ -11,37 +11,39 @@ claude plugin install softvoyagers-skills
 
 ## Commands
 
-| Command | Phases | Description |
-|---------|--------|-------------|
-| `/softvoyagers-skills:bug-fix` | Diagnose → Fix → Validate → Ship | Multi-agent bug diagnosis and minimal fix with regression tests |
-| `/softvoyagers-skills:new-feature` | Discovery → Architecture → Implement → Review → Ship | End-to-end feature implementation with customer-focused requirements |
-| `/softvoyagers-skills:discover-feature` | Research → Synthesis → Report | Read-only customer needs analysis from 5 perspectives (Virtual Customer, UX Designer, Product Owner, Engineer, QA) |
-| `/softvoyagers-skills:discover-feature-and-deliver-most-wanted` | Research → Selection → Architecture → Implement → Review → Ship | Discover customer needs then build the highest-impact feature |
-| `/softvoyagers-skills:research-issue` | Input Parsing → Gather → Analyze → Report | Research non-trivial issues with 4 parallel agents (codebase, web, docs, internal knowledge) |
+| Command | Flow | Description |
+|---------|------|-------------|
+| `/softvoyagers-skills:bug-fix` | Diagnose → **FIX↔VALIDATE loop** → Ship | Diagnose a bug, freeze a reproduction test, and iterate a minimal fix until reviews + tests converge |
+| `/softvoyagers-skills:new-feature` | Discovery → Architecture → **IMPLEMENT↔REVIEW loop** → Ship | Build a feature with user-grounded acceptance criteria, iterating until every must-have criterion passes |
+| `/softvoyagers-skills:discover-feature` | **RESEARCH↔CRITIQUE loop** → Report | Read-only customer-needs analysis from 5 perspectives, looping until findings saturate; emits an Impact/Effort-ranked report |
+| `/softvoyagers-skills:discover-feature-and-deliver-most-wanted` | discover-feature → gate → new-feature | Thin wrapper: discover needs, auto-select the highest-impact feature, then build it |
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
-| `use-gamma-slides` | Generate slide presentations using the Gamma API — prompt-driven creation, style customization, and structured content |
+| `use-gamma-slides` | Generate slide presentations using the Gamma API |
 
 ## How It Works
 
 Each command uses the **Orchestrator pattern**:
 
-1. Claude acts as the orchestrator and never writes code directly
-2. Specialized agents are launched in parallel where possible (Explore for read-only research, general-purpose for code changes)
-3. Quality gates between phases ensure correctness before proceeding
-4. Final phase creates a branch, commits, pushes, and opens a PR
+1. Claude acts as the orchestrator and never writes code directly.
+2. It delegates to **dedicated agents** (in the plugin's `agents/` directory), each pinned to the most capable model for its job — **Fable** for discovery personas, **Opus** for reasoning / code / review, **Sonnet** for read-only exploration.
+3. **Quality gates** between phases ensure correctness before proceeding.
+4. Three commands run **bounded self-correction loops** — produce → review → correct → re-review — that iterate until they converge (zero blocking issues, tests pass, acceptance criteria met) and provably terminate at a hard iteration cap.
+5. The final phase creates a branch, commits, pushes, and opens a PR.
+
+### The agent library
+
+A shared set of `sv-*` agents (e.g. `sv-root-cause-analyst`, `sv-tech-lead`, `sv-implementer`, `sv-test-engineer`, `sv-code-reviewer`, `sv-acceptance-validator`, `sv-virtual-customer`, `sv-synthesis-analyst`, `sv-discovery-critic`) is reused across commands, referenced as `subagent_type: softvoyagers-skills:sv-<name>`. Producers and reviewers are kept separate so no agent grades its own work.
 
 ### Conventions
 
 All commands enforce:
-- Test naming: `MethodName_Scenario_ExpectedResult`
-- Test structure: Arrange / Act / Assert
-- Minimal change surface — only touch what's necessary
-- Follow existing codebase patterns and conventions
-- Tech-stack agnostic — auto-detects project tooling
+- Test naming `MethodName_Scenario_ExpectedResult`; Arrange / Act / Assert structure.
+- Minimal change surface — only touch what's necessary.
+- Follow existing codebase patterns; tech-stack agnostic — auto-detects project tooling.
 
 ## License
 
