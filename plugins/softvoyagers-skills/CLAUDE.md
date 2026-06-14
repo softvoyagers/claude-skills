@@ -52,7 +52,7 @@ Three commands iterate until they converge. Every loop is **orchestrator-owned, 
 
 ## Skills
 
-- `use-gamma-slides/` — Gamma API slide deck generation.
+- `java-decompilation/` — Decompile `.class`/jar bytecode to readable `.java` source (Vineflower + CFR), analyze, and save into a repo.
 
 ## Conventions
 

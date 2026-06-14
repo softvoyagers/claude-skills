@@ -50,7 +50,7 @@ Launch **2 agents in parallel**:
 
 ## Phase 2–3: FIX ↔ VALIDATE LOOP
 
-A single orchestrator-owned loop. **You own a monotonic iteration counter; no agent may extend it. Hard cap: 3 iterations.**
+A single orchestrator-owned loop. **You own a monotonic iteration counter; no agent may extend it. Hard cap: 2 iterations.**
 
 ### Each iteration
 
@@ -78,7 +78,7 @@ After each iteration, fingerprint the CRITICAL set (`file:line | category`). If 
 
 Full Phase-1 diagnosis · current `git diff` · verbatim failing-test output · each CRITICAL with `file:line` and a suggested direction · the instruction: *"Address ONLY these CRITICALs. Do not refactor. Keep the change minimal. If two CRITICALs conflict, surface the conflict instead of thrashing."*
 
-After 3 iterations without convergence → proceed to Phase 4 ship-with-residuals (issues noted in the PR), **unless** the ship-floor below triggers.
+After 2 iterations without convergence → proceed to Phase 4 ship-with-residuals (issues noted in the PR), **unless** the ship-floor below triggers.
 
 ---
 
@@ -128,7 +128,7 @@ Otherwise:
    ## Test Plan
    - [ ] Frozen reproduction test now passes
    - [ ] Regression tests pass
-   - [ ] Converged through the FIX↔VALIDATE loop (≤3 iterations)
+   - [ ] Converged through the FIX↔VALIDATE loop (≤2 iterations)
    - [ ] Minimal change surface
 
    🤖 Generated with multi-agent bug fix

@@ -60,7 +60,7 @@ Launch **`sv-tech-lead`** (ARCHITECTURE mode): file-by-file change plan, test st
 
 ## Phase 3–4: IMPLEMENT ↔ REVIEW LOOP
 
-A single orchestrator-owned loop. **You own a monotonic iteration counter. Hard cap: 3 iterations.**
+A single orchestrator-owned loop. **You own a monotonic iteration counter. Hard cap: 2 iterations.**
 
 ### Each iteration
 
@@ -88,7 +88,7 @@ After each iteration: if the fingerprinted CRITICAL set does **not strictly shri
 
 Phase-2 architecture plan · current `git diff` · verbatim failing-test/criterion output · each CRITICAL/FAIL with `file:line` and a direction · *"Address only these; do not alter passing behavior; keep the change minimal."* Route code CRITICALs → `sv-implementer`; coverage/test CRITICALs → `sv-test-engineer`.
 
-After 3 iterations without convergence → Phase 5 ship-with-residuals, subject to the ship-floor.
+After 2 iterations without convergence → Phase 5 ship-with-residuals, subject to the ship-floor.
 
 ---
 
@@ -132,7 +132,7 @@ Execute yourself — do NOT delegate.
    - [ ] All tests pass
    - [ ] Coverage gaps checked by adversarial review
    - [ ] Acceptance criteria validated (every must-have PASS)
-   - [ ] Converged through the IMPLEMENT↔REVIEW loop (≤3 iterations)
+   - [ ] Converged through the IMPLEMENT↔REVIEW loop (≤2 iterations)
 
    🤖 Generated with multi-agent feature implementation
    EOF
