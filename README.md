@@ -22,7 +22,7 @@ claude plugin install softvoyagers-skills
 
 | Skill | Description |
 |-------|-------------|
-| `use-gamma-slides` | Generate slide presentations using the Gamma API |
+| `java-decompilation` | Decompile compiled Java (`.class` files / jars) to readable `.java` source with Vineflower (CFR cross-check), then analyze and save it into a repo |
 
 ## How It Works
 
