@@ -53,6 +53,7 @@ Three commands iterate until they converge. Every loop is **orchestrator-owned, 
 ## Skills
 
 - `java-decompilation/` — Decompile `.class`/jar bytecode to readable `.java` source (Vineflower + CFR), analyze, and save into a repo.
+- `humanizer/` — Remove AI-writing tells from text (em dashes, rule of three, AI vocabulary, promotional language, 30+ patterns), based on Wikipedia's "Signs of AI writing". Vendored from [blader/humanizer](https://github.com/blader/humanizer) (MIT).
 
 ## Conventions
 
