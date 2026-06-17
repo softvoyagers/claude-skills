@@ -23,6 +23,7 @@ claude plugin install softvoyagers-skills
 | Skill | Description |
 |-------|-------------|
 | `java-decompilation` | Decompile compiled Java (`.class` files / jars) to readable `.java` source with Vineflower (CFR cross-check), then analyze and save it into a repo |
+| `humanizer` | Remove signs of AI-generated writing from text — em dashes, rule of three, AI vocabulary, promotional language, and 30+ other patterns — based on Wikipedia's "Signs of AI writing" guide |
 
 ## How It Works
 
