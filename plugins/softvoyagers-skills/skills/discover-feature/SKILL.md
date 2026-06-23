@@ -1,18 +1,29 @@
 ---
-description: Read-only customer needs analysis from multiple perspectives
+name: discover-feature
+description: |
+  Read-only, multi-perspective analysis of what customers/users actually need —
+  no code, no file writes. Use when the user wants to research product gaps, pain
+  points, or the highest-impact opportunities before building anything. A
+  discovery panel (virtual customer, UX, product owner, QA, tech lead) loops to
+  saturation and produces an Impact/Effort-ranked feature report. Trigger with
+  phrases like "what should we build", "discover features", "what do users need",
+  "find product gaps", "prioritize the backlog", "where are the opportunities".
+allowed-tools: Task, Read, Grep, Glob, AskUserQuestion
+version: 1.0.0
+license: MIT
 ---
 
-# /discover-feature — Multi-Agent Feature Discovery
+# discover-feature — Multi-Agent Feature Discovery
 
-Discover what customers actually need by analyzing the product from multiple perspectives, iterating until the picture is complete. Input: a product area, user segment, or pain point. Output: a prioritized, evidence-backed feature report.
+Discover what customers actually need by analyzing the product from multiple perspectives, iterating until the picture is complete. Input: a product area, user segment, or pain point from the user. Output: a prioritized, evidence-backed feature report.
 
-**Discovery focus**: $ARGUMENTS
+**Discovery focus**: the user's request that triggered this skill (a product area, user segment, or pain point).
 
 ---
 
 ## Execution Protocol
 
-You are the **Orchestrator**. This is a **research-only** command — no code, no file writes, no branches. You run a discovery panel, synthesize, and let an independent critic decide whether to dig deeper, looping until findings saturate. You delegate via the Task tool's `subagent_type`; each agent carries its own model:
+You are the **Orchestrator**. This is a **research-only** skill — no code, no file writes, no branches. You run a discovery panel, synthesize, and let an independent critic decide whether to dig deeper, looping until findings saturate. You delegate via the Task tool's `subagent_type`; each agent carries its own model:
 
 | Role | `subagent_type` | Model |
 | ---- | --------------- | ----- |

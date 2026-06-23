@@ -1,12 +1,23 @@
 ---
-description: Multi-agent bug diagnosis and minimal fix with regression tests
+name: bug-fix
+description: |
+  Multi-agent bug diagnosis and minimal, tested fix shipped as a PR. Use when the
+  user reports a bug, error, crash, exception, stack trace, failing behavior, or
+  regression and wants it diagnosed and fixed end-to-end. Flow: root-cause
+  diagnosis, a frozen reproduction test, a minimal fix iterated through a review
+  loop, then a PR. Trigger with phrases like "fix this bug", "this is broken",
+  "I'm getting an error", "diagnose this crash", "why does X fail", "there's a
+  regression in Y", "track down this failure".
+allowed-tools: Task, Bash, Read, Write, Edit, Grep, Glob, AskUserQuestion
+version: 1.0.0
+license: MIT
 ---
 
-# /bug-fix — Multi-Agent Bug Fix
+# bug-fix — Multi-Agent Bug Fix
 
-Diagnose and fix a bug end-to-end using dedicated agents. Input: a bug report or error description. Output: a PR with a minimal, tested fix ready for human merge.
+Diagnose and fix a bug end-to-end using dedicated agents. Input: the bug report or error description the user gave when this skill triggered. Output: a PR with a minimal, tested fix ready for human merge.
 
-**Bug report**: $ARGUMENTS
+**Bug report**: the user's request that triggered this skill (the bug report / error description).
 
 ---
 

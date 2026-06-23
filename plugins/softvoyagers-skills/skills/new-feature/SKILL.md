@@ -1,12 +1,24 @@
 ---
-description: End-to-end feature implementation with specialized agents
+name: new-feature
+description: |
+  End-to-end feature implementation with specialized agents, shipped as a PR. Use
+  when the user wants to build, implement, add, or create a new feature,
+  capability, endpoint, or enhancement. Flow: codebase discovery, user-grounded
+  acceptance criteria, an architecture plan, an implement↔review loop gated on
+  acceptance criteria, then a PR. Also consumes a `SELECTED FEATURE` block handed
+  off by the discover-feature-and-deliver-most-wanted skill. Trigger with phrases
+  like "add a feature", "implement X", "build support for Y", "create a new ...",
+  "I want the app to also do Z".
+allowed-tools: Task, Bash, Read, Write, Edit, Grep, Glob, AskUserQuestion
+version: 1.0.0
+license: MIT
 ---
 
-# /new-feature — Multi-Agent Feature Implementation
+# new-feature — Multi-Agent Feature Implementation
 
-Implement a new feature end-to-end using dedicated agents. Input: a feature description (or a `SELECTED FEATURE` block from the discover-and-deliver wrapper). Output: a PR with tested, reviewed code ready for human merge.
+Implement a new feature end-to-end using dedicated agents. Input: a feature description from the user (or a `SELECTED FEATURE` block from the discover-feature-and-deliver-most-wanted wrapper). Output: a PR with tested, reviewed code ready for human merge.
 
-**Feature request**: $ARGUMENTS
+**Feature request**: the user's request that triggered this skill (or the `SELECTED FEATURE` block passed in by the wrapper).
 
 ---
 
@@ -37,7 +49,7 @@ You are the **Orchestrator**. You coordinate dedicated subagents and gate qualit
 
 **Goal**: Understand the codebase, define user-grounded acceptance criteria, surface risk.
 
-**Pre-supplied requirements short-circuit (when called from the wrapper):** If `$ARGUMENTS` contains an authoritative `SELECTED FEATURE` block (name + customer problem + scope IN/OUT + acceptance criteria), treat those acceptance criteria as **canonical** — do **NOT** regenerate them and do **NOT** re-run discovery. Reduce Phase 1 to **`sv-codebase-analyst`** + **`sv-qa-analyst`** only (the technical grounding discovery did not produce), then go to Phase 2.
+**Pre-supplied requirements short-circuit (when called from the wrapper):** If the input contains an authoritative `SELECTED FEATURE` block (name + customer problem + scope IN/OUT + acceptance criteria), treat those acceptance criteria as **canonical** — do **NOT** regenerate them and do **NOT** re-run discovery. Reduce Phase 1 to **`sv-codebase-analyst`** + **`sv-qa-analyst`** only (the technical grounding discovery did not produce), then go to Phase 2.
 
 Otherwise, launch **3 agents in parallel**:
 1. **`sv-codebase-analyst`** — codebase map, similar patterns to follow, affected files, dependencies, constraints.
