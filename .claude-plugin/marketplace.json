@@ -1,6 +1,6 @@
 {
   "name": "softvoyagers-skills",
-  "description": "Multi-agent workflow skills for Claude Code — bug fixing, feature implementation, and feature discovery, powered by dedicated model-tiered agents with self-correcting loops",
+  "description": "Skills for Claude Code — multi-agent feature discovery powered by dedicated model-tiered agents, plus writing and Java-decompilation utilities",
   "owner": {
     "name": "SoftVoyagers",
     "email": "damian.pozimski@gmail.com"
@@ -8,9 +8,9 @@
   "plugins": [
     {
       "name": "softvoyagers-skills",
-      "description": "Multi-agent workflow skills: bug fixing, feature implementation, and feature discovery, powered by dedicated model-tiered agents with self-correcting loops",
-      "version": "1.4.0",
-      "source": "./plugins/softvoyagers-skills"
+      "description": "Multi-agent feature discovery with a self-correcting research loop, plus humanizer and java-decompilation utility skills",
+      "version": "1.5.0",
+      "source": "./"
     }
   ]
 }

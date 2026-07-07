@@ -1,6 +1,6 @@
 # softvoyagers/claude-skills
 
-Multi-agent workflow skills for Claude Code. Orchestrate **dedicated, model-tiered agents** to fix bugs, implement features, and discover customer needs — end-to-end, with self-correcting loops. The workflows are **skills**, so they **auto-trigger** from what you ask for (and can still be invoked explicitly).
+Skills for Claude Code. A multi-agent **feature-discovery** workflow that orchestrates **dedicated, model-tiered agents** to surface customer needs — with a self-correcting research loop — plus writing and Java-decompilation utility skills. The workflow is a **skill**, so it **auto-triggers** from what you ask for (and can still be invoked explicitly).
 
 ## Installation
 
@@ -9,16 +9,13 @@ claude plugin marketplace add softvoyagers/claude-skills
 claude plugin install softvoyagers-skills
 ```
 
-## Workflow skills
+## Workflow skill
 
-These auto-trigger from your request — e.g. "fix this crash" pulls in `bug-fix`, "add dark mode" pulls in `new-feature`. You can still invoke them explicitly as `/softvoyagers-skills:<name>`.
+Auto-triggers from your request — e.g. "what should we build next?" pulls in `discover-feature`. You can still invoke it explicitly as `/softvoyagers-skills:discover-feature`.
 
 | Skill | Flow | Description |
 |-------|------|-------------|
-| `bug-fix` | Diagnose → **FIX↔VALIDATE loop** → Ship | Diagnose a bug, freeze a reproduction test, and iterate a minimal fix until reviews + tests converge |
-| `new-feature` | Discovery → Architecture → **IMPLEMENT↔REVIEW loop** → Ship | Build a feature with user-grounded acceptance criteria, iterating until every must-have criterion passes |
-| `discover-feature` | **RESEARCH↔CRITIQUE loop** → Report | Read-only customer-needs analysis from 5 perspectives, looping until findings saturate; emits an Impact/Effort-ranked report |
-| `discover-feature-and-deliver-most-wanted` | discover-feature → gate → new-feature | Thin wrapper: discover needs, auto-select the highest-impact feature, then build it |
+| `discover-feature` | **RESEARCH↔CRITIQUE loop** → Report | Read-only customer-needs analysis from multiple perspectives, looping until findings saturate; emits an Impact/Effort-ranked report |
 
 ## Utility skills
 
@@ -29,24 +26,20 @@ These auto-trigger from your request — e.g. "fix this crash" pulls in `bug-fix
 
 ## How It Works
 
-Each workflow skill uses the **Orchestrator pattern**:
+The `discover-feature` skill uses the **Orchestrator pattern**:
 
 1. Claude acts as the orchestrator and never writes code directly.
-2. It delegates to **dedicated agents** (in the plugin's `agents/` directory), each pinned to the most capable model for its job — **Fable** for discovery personas, **Opus** for reasoning / code / review, **Sonnet** for read-only exploration.
-3. **Quality gates** between phases ensure correctness before proceeding.
-4. Three of the workflow skills run **bounded self-correction loops** — produce → review → correct → re-review — that iterate until they converge (zero blocking issues, tests pass, acceptance criteria met) and provably terminate at a hard iteration cap.
-5. The final phase creates a branch, commits, pushes, and opens a PR.
+2. It delegates to **dedicated agents** (in the plugin's `agents/` directory), each pinned to the most capable model for its job — **Fable** for discovery personas, **Opus** for reasoning / synthesis / critique, **Sonnet** for read-only exploration.
+3. **Quality gates** between phases ensure completeness before proceeding.
+4. The skill runs a **bounded self-correction loop** — research → synthesize → critique → re-research — that iterates until findings saturate and provably terminates at a hard round cap.
 
 ### The agent library
 
-A shared set of `sv-*` agents (e.g. `sv-root-cause-analyst`, `sv-tech-lead`, `sv-implementer`, `sv-test-engineer`, `sv-code-reviewer`, `sv-acceptance-validator`, `sv-virtual-customer`, `sv-synthesis-analyst`, `sv-discovery-critic`) is reused across the workflow skills, referenced as `subagent_type: softvoyagers-skills:sv-<name>`. Producers and reviewers are kept separate so no agent grades its own work.
+A set of read-only `sv-*` agents (`sv-virtual-customer`, `sv-ux-designer`, `sv-product-owner`, `sv-qa-analyst`, `sv-tech-lead`, `sv-synthesis-analyst`, `sv-discovery-critic`) drives the discovery workflow, referenced as `subagent_type: softvoyagers-skills:sv-<name>`. Producers and the completeness critic are kept separate so no agent grades its own work.
 
 ### Conventions
 
-All workflow skills enforce:
-- Test naming `MethodName_Scenario_ExpectedResult`; Arrange / Act / Assert structure.
-- Minimal change surface — only touch what's necessary.
-- Follow existing codebase patterns; tech-stack agnostic — auto-detects project tooling.
+The discovery skill is tech-stack agnostic — it auto-detects project tooling and reads the codebase without modifying it.
 
 ## License
 

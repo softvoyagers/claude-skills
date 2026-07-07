@@ -1,7 +1,7 @@
 {
   "name": "softvoyagers-skills",
-  "description": "Multi-agent workflow skills: bug fixing, feature implementation, and feature discovery, powered by dedicated model-tiered agents with self-correcting loops",
-  "version": "1.4.0",
+  "description": "Multi-agent feature discovery with a self-correcting research loop, plus humanizer and java-decompilation utility skills",
+  "version": "1.5.0",
   "author": {
     "name": "SoftVoyagers",
     "email": "damian.pozimski@gmail.com"
@@ -11,13 +11,12 @@
   "license": "MIT",
   "keywords": [
     "multi-agent",
-    "bug-fix",
     "feature-discovery",
-    "feature-implementation",
     "dedicated-agents",
     "self-correction",
     "orchestration",
     "humanizer",
-    "writing"
+    "writing",
+    "java-decompilation"
   ]
 }
